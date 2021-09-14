@@ -11,7 +11,7 @@ function restricted(req, res, next) {
   if (req.session.user) {
     next();
   } else {
-    next({ status: 401, message: "You shall not pass" });
+    next({ status: 401, message: "you shall not pass" });
   }
 }
 
@@ -24,11 +24,15 @@ function restricted(req, res, next) {
   }
 */
 async function checkUsernameFree(req, res, next) {
-  const [response] = await Users.findBy({ username: req.body.username });
-  if (response) {
-    next({ status: 422, message: "Username taken" });
-  } else {
-    next();
+  try {
+    const users = await Users.findBy({ username: req.body.username });
+    if (!users.length) {
+      next();
+    } else {
+      next({ status: 422, message: "Username taken" });
+    }
+  } catch (err) {
+    next(err);
   }
 }
 
@@ -41,13 +45,16 @@ async function checkUsernameFree(req, res, next) {
   }
 */
 async function checkUsernameExists(req, res, next) {
-  const { username } = req.body;
-  const [user] = await Users.findBy({ username });
-  if (user) {
-    req.user = user;
-    next();
-  } else {
-    next({ status: 401, message: "Invalid credentials" });
+  try {
+    const [user] = await Users.findBy({ username: req.body.username });
+    if (user) {
+      req.user = user;
+      next();
+    } else {
+      next({ status: 401, message: "Invalid Credentials" });
+    }
+  } catch (err) {
+    next(err);
   }
 }
 
